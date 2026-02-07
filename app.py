@@ -55,6 +55,7 @@ def upload_file_to_drive(service, folder_id: str, file_storage, filename: str) -
         body=meta,
         media_body=media,
         fields="id"
+        supportsAllDrives=True   
     ).execute()
 
     return created["id"]
