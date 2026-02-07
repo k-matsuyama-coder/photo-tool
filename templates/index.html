@@ -49,11 +49,29 @@
       margin-bottom: 16px;
     }
 
-    .preview img {
+    .thumb {
+      position: relative;
+    }
+
+    .thumb img {
       width: 100%;
       border-radius: 6px;
       object-fit: cover;
       aspect-ratio: 1 / 1;
+    }
+
+    .remove {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      font-size: 14px;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -65,11 +83,10 @@
     <form method="POST" enctype="multipart/form-data">
       <input
         type="file"
+        id="fileInput"
         name="photos"
         multiple
         accept="image/*"
-        onchange="previewImages(this)"
-        required
       >
 
       <div class="preview" id="preview"></div>
@@ -79,5 +96,7 @@
   </div>
 
   <script>
-    function previewImages(input) {
-      const preview = docum
+    let selectedFiles = [];
+
+    const fileInput = document.getElementById("fileInput");
+    const preview = d
