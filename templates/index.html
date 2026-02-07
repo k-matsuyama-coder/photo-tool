@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>写真送付ツール</title>
+
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, sans-serif;
@@ -11,6 +12,7 @@
       margin: 0;
       padding: 20px;
     }
+
     .container {
       max-width: 480px;
       margin: auto;
@@ -19,14 +21,17 @@
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
+
     h1 {
       font-size: 20px;
       text-align: center;
     }
+
     input[type="file"] {
       width: 100%;
-      margin: 20px 0;
+      margin: 16px 0;
     }
+
     button {
       width: 100%;
       padding: 14px;
@@ -36,15 +41,43 @@
       border: none;
       border-radius: 8px;
     }
+
+    .preview {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .preview img {
+      width: 100%;
+      border-radius: 6px;
+      object-fit: cover;
+      aspect-ratio: 1 / 1;
+    }
   </style>
 </head>
+
 <body>
   <div class="container">
     <h1>写真を送信</h1>
+
     <form method="POST" enctype="multipart/form-data">
-      <input type="file" name="photos" multiple required>
+      <input
+        type="file"
+        name="photos"
+        multiple
+        accept="image/*"
+        onchange="previewImages(this)"
+        required
+      >
+
+      <div class="preview" id="preview"></div>
+
       <button type="submit">送信</button>
     </form>
   </div>
-</body>
-</html>
+
+  <script>
+    function previewImages(input) {
+      const preview = docum
