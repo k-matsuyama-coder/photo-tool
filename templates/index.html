@@ -3,13 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>搬入・搬出車両確認フォーム </title>
+  <title>搬入・搬出車両確認フォーム</title>
 
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       background: #f5f5f5;
-      margin: 0;
       padding: 20px;
     }
 
@@ -23,16 +22,21 @@
     }
 
     h1 {
-      font-size: 20px;
       text-align: center;
+      font-size: 20px;
+    }
+
+    h2 {
+      font-size: 16px;
+      margin-top: 24px;
     }
 
     input[type="file"] {
       width: 100%;
-      margin: 16px 0;
+      margin: 8px 0 12px;
     }
 
-    button {
+    button.submit {
       width: 100%;
       padding: 14px;
       font-size: 16px;
@@ -40,13 +44,13 @@
       color: white;
       border: none;
       border-radius: 8px;
+      margin-top: 24px;
     }
 
     .preview {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 8px;
-      margin-bottom: 16px;
     }
 
     .thumb {
@@ -56,8 +60,8 @@
     .thumb img {
       width: 100%;
       border-radius: 6px;
-      object-fit: cover;
       aspect-ratio: 1 / 1;
+      object-fit: cover;
     }
 
     .remove {
@@ -71,32 +75,88 @@
       width: 22px;
       height: 22px;
       font-size: 14px;
-      cursor: pointer;
     }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <h1>写真を送信</h1>
+<div class="container">
+  <h1>写真送信</h1>
 
-    <form method="POST" enctype="multipart/form-data">
-      <input
-        type="file"
-        id="fileInput"
-        name="photos"
-        multiple
-        accept="image/*"
-      >
+  <form method="POST" enctype="multipart/form-data">
 
-      <div class="preview" id="preview"></div>
+    <!-- ① 正面写真 -->
+    <h2>① 正面写真</h2>
+    <input type="file" multiple accept="image/*" id="out" name="out_photos">
+    <div class="preview" id="out_preview"></div>
 
-      <button type="submit">送信</button>
-    </form>
-  </div>
+    <!-- ② 背面写真 -->
+    <h2>② 背面写真</h2>
+    <input type="file" multiple accept="image/*" id="in" name="in_photos">
+    <div class="preview" id="in_preview"></div>
 
-  <script>
-    let selectedFiles = [];
+    <!-- ③ 右側面写真 -->
+    <h2>③ 右側面写真</h2>
+    <input type="file" multiple accept="image/*" id="eq" name="eq_photos">
+    <div class="preview" id="eq_preview"></div>
 
-    const fileInput = document.getElementById("fileInput");
-    const preview = d
+    <!-- ④ 左側面写真 -->
+    <h2>④ 左側面写真</h2>
+    <input type="file" multiple accept="image/*" id="etc" name="etc_photos">
+    <div class="preview" id="etc_preview"></div>
+
+    <button class="submit" type="submit">送信</button>
+  </form>
+</div>
+
+<script>
+  function setupUploader(inputId, previewId) {
+    const input = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+    let files = [];
+
+    input.addEventListener("change", () => {
+      files = Array.from(input.files);
+      render();
+    });
+
+    function render() {
+      preview.innerHTML = "";
+
+      files.forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const div = document.createElement("div");
+          div.className = "thumb";
+
+          const img = document.createElement("img");
+          img.src = e.target.result;
+
+          const btn = document.createElement("button");
+          btn.className = "remove";
+          btn.textContent = "×";
+          btn.onclick = () => {
+            files.splice(index, 1);
+            render();
+          };
+
+          div.appendChild(img);
+          div.appendChild(btn);
+          preview.appendChild(div);
+        };
+        reader.readAsDataURL(file);
+      });
+
+      const dt = new DataTransfer();
+      files.forEach(f => dt.items.add(f));
+      input.files = dt.files;
+    }
+  }
+
+  setupUploader("out", "out_preview");
+  setupUploader("in", "in_preview");
+  setupUploader("eq", "eq_preview");
+  setupUploader("etc", "etc_preview");
+</script>
+</body>
+</html>
