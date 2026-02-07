@@ -11,13 +11,13 @@ from googleapiclient.http import MediaIoBaseUpload
 
 app = Flask(__name__)
 
-# フォームの name と、ファイル名に入れるカテゴリ名（並び順もここで決まる）
+# フォームの name と、ファイル名に入れるカテゴリ名
 PHOTO_FIELDS = [
-    ("out_photos", "01_front"),   # 正面
-    ("in_photos", "02_back"),     # 背面
-    ("eq_photos", "03_right"),    # 右側面
-    ("etc_photos", "04_left"),    # 左側面
-    ("damage_photos", "05_damage")# 傷（任意）
+    ("out_photos", "01_front"),     # 正面
+    ("in_photos", "02_back"),       # 背面
+    ("eq_photos", "03_right"),      # 右側面
+    ("etc_photos", "04_left"),      # 左側面
+    ("damage_photos", "05_damage"), # 傷（任意）
 ]
 
 SCOPES = ["https://www.googleapis.com/auth/drive.file"]
@@ -31,51 +31,62 @@ def get_drive_service():
 
 def make_drive_filename(work_date: str, project: str, label: str, original_name: str) -> str:
     """
-    例: 2026-02-08_〇〇現場_01_front_154233_123456_sample.jpg
+    例: 2026-02-08_竹中_広町_01_front_154233_123456_sample.jpg
     """
-    # OSやURLで危険な文字を減らす（英数字/._-中心になる）
     safe_original = secure_filename(original_name) or "photo.jpg"
-
-    # 現場名は日本語OKだが、Drive上で検索しやすいように軽く整形
     project = (project or "no_project").strip().replace("/", "_").replace("\\", "_")
-
-    # 同名衝突防止のため時刻＋マイクロ秒
     ts = datetime.now().strftime("%H%M%S_%f")
-
     return f"{work_date}_{project}_{label}_{ts}_{safe_original}"
 
 
 def upload_file_to_drive(service, folder_id: str, file_storage, filename: str) -> str:
-    """
-    file_storage: Flaskの FileStorage
-    戻り値: 作成されたファイルID
-    """
-    # FileStorage を読み込んでアップロード用にBytesIOへ
     stream = io.BytesIO(file_storage.read())
     stream.seek(0)
 
-    media = MediaIoBaseUpload(stream, mimetype=file_storage.mimetype, resumable=False)
+    media = MediaIoBaseUpload(
+        stream,
+        mimetype=file_storage.mimetype,
+        resumable=False
+    )
 
-    meta = {
-        "name": filename,
-        "parents": [folder_id],
-    }
+    meta = {"name": filename, "parents": [folder_id]}
 
-    created = service.files().create(body=meta, media_body=media, fields="id").execute()
+    created = service.files().create(
+        body=meta,
+        media_body=media,
+        fields="id"
+    ).execute()
+
     return created["id"]
 
 
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
+        # ========= デバッグ（まずここで「届いてるか」を見る） =========
+        print("FILES:", list(request.files.keys()))
+        for k in ["out_photos", "in_photos", "eq_photos", "etc_photos", "damage_photos"]:
+            print(k, "=", len(request.files.getlist(k)))
+        # ============================================================
+
         project = (request.form.get("project") or "").strip()
         work_date = (request.form.get("work_date") or "").strip()
 
         # 最低限の入力チェック
         if not project:
-            return render_template("index.html", project=project, work_date=work_date, message="現場名を入力してください")
+            return render_template(
+                "index.html",
+                project=project,
+                work_date=work_date,
+                message="現場名を入力してください"
+            )
         if not work_date:
-            return render_template("index.html", project=project, work_date=work_date, message="日付を入力してください")
+            return render_template(
+                "index.html",
+                project=project,
+                work_date=work_date,
+                message="日付を入力してください"
+            )
 
         # Drive準備
         folder_id = os.environ["DRIVE_FOLDER_ID"]
@@ -86,9 +97,7 @@ def index():
 
         # 全カテゴリを順番に処理
         for field_name, label in PHOTO_FIELDS:
-            files = request.files.getlist(field_name)
-
-            for f in files:
+            for f in request.files.getlist(field_name):
                 if not f or not f.filename:
                     continue
 
@@ -98,7 +107,12 @@ def index():
                 uploaded_ids.append(file_id)
 
         if uploaded_count == 0:
-            return render_template("index.html", project=project, work_date=work_date, message="写真が選ばれていません")
+            return render_template(
+                "index.html",
+                project=project,
+                work_date=work_date,
+                message="写真が選ばれていません"
+            )
 
         return render_template(
             "index.html",
