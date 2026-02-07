@@ -1,41 +1,40 @@
 from flask import Flask, render_template, request
 import smtplib
 from email.message import EmailMessage
+import os
 
 app = Flask(__name__)
 
 # ===== 設定 =====
 FROM_EMAIL = "k-matsuyama@a-z-biz.com"
-FROM_PASSWORD = "csiv fnjj rymp mawh"
+FROM_PASSWORD = "csiv fnjj rymp mawh"  # ※ 本番では環境変数推奨
 TO_EMAIL = "k-matsuyama@a-z-biz.com"
 # =================
 
 @app.route("/", methods=["GET", "POST"])
 def upload():
     if request.method == "POST":
-        photo = request.files["photo"]
+        photos = request.files.getlist("photos")
 
-        if photo.filename == "":
+        # 写真が1枚も選ばれていない場合
+        if not photos or photos[0].filename == "":
             return "写真が選ばれていません"
-
-        # 一時保存
-        file_path = "sample.jpg"
-        photo.save(file_path)
 
         # メール作成
         msg = EmailMessage()
         msg["Subject"] = "写真送付テスト"
         msg["From"] = FROM_EMAIL
         msg["To"] = TO_EMAIL
-        msg.set_content("写真を送ります。")
+        msg.set_content(f"{len(photos)} 枚の写真を送ります。")
 
-        # 写真を添付
-        with open(file_path, "rb") as f:
+        # 複数写真を添付
+        for photo in photos:
+            photo.stream.seek(0)
             msg.add_attachment(
-                f.read(),
+                photo.read(),
                 maintype="image",
                 subtype="jpeg",
-                filename="photo.jpg"
+                filename=photo.filename
             )
 
         # Gmail送信
@@ -47,7 +46,6 @@ def upload():
 
     return render_template("index.html")
 
-import os
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
