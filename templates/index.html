@@ -1,15 +1,82 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
-  <meta charset="utf-8">
-  <title>写真送付</title>
-</head>
-<body>
-  <h1>写真送付ツール</h1>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>写真送付ツール</title>
 
-  <form method="POST" enctype="multipart/form-data">
-    <input type="file" name="photo">
-    <button type="submit">送信</button>
-  </form>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 40px auto;
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            font-size: 18px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        button:active {
+            background: #0056b3;
+        }
+
+        .note {
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+            margin-top: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>📸 写真を送信</h1>
+
+        <form method="POST" enctype="multipart/form-data">
+            <input
+                type="file"
+                name="photos"
+                accept="image/*"
+                multiple
+                required
+            >
+
+            <button type="submit">送信する</button>
+        </form>
+
+        <div class="note">
+            ※ 複数枚選択できます
+        </div>
+    </div>
 </body>
 </html>
